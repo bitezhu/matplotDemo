@@ -2,13 +2,18 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import pysam
+import sys
+
 from bioformat import GTF_Line
 
 from genemodel import *
 
-import sys
 #plt.rcParams['axes.labelpad']=10
 plt.rcParams['axes.ymargin'] =0.2 
+if len(sys.argv) == 4:
+    depthplotflag = 1
+    sys.stdout.write("Assume you supply a bam file to plot sequence coverage.\n")
 
 f=file(sys.argv[1])  ## only support standard gtf format for now
 geneOI = sys.argv[2].strip()  ## geneid or genename of interst
@@ -70,7 +75,12 @@ def formatxlabels(xcoord):
 plt.rcParams[u'ytick.major.pad']=10
 #plt.tick_params('y',pad=20)   # don't work
 fig=plt.figure(figsize=(20,16))
-ax=fig.add_subplot(111)
+if depthplotflag:
+    ax = fig.add_axes([0,0.15,1,0.85])
+    axdepth = fig.add_axes([0,0,1,0.13])
+else:
+    ax=fig.add_subplot(111)
+
 txID = []
 for i,transcript in enumerate(geneid.children.keys()):
     txID.append(transcript)
@@ -82,6 +92,15 @@ for i,transcript in enumerate(geneid.children.keys()):
     axaddexons(ax,geneid.children[transcript].fp_utr,i,strand=geneid.children[transcript],color='darkviolet')
     axaddexons(ax,geneid.children[transcript].tp_utr,i,strand=geneid.children[transcript],color='red')
     ax.hlines(i ,geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length, linestyle=u'dotted', color='black', linewidth=1)
+
+
+targetRegion = "-".join(map(str,[geneid.seqname,geneid.start,geneid.end])
+if depthplotflag:
+    samfile = sys.argv[3]
+    bamfile = pysam.AlignmentFile(samfile,'rb')
+    basecount,Chr_Region,depth_arr = bamio.singlebaseCov(bamfile,targetRegion)
+    bamfile.close()    
+    axdepth.fill_between(Chr_Region,depth_arr,alpha=0.5)
 
 #ax.yaxis.labelpad =1000
 ax.set_yticks(range(len(txID)))
@@ -99,6 +118,7 @@ ax.spines['left'].set_visible(False)
 ax.set_axis_bgcolor("snow")
 ax.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
 ax.set_ylim(bottom=-1,top=i+1)
+
 plt.title(geneOI)
 plt.tight_layout()
 
