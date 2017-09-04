@@ -80,7 +80,7 @@ plt.rcParams[u'ytick.major.pad']=10
 fig=plt.figure(figsize=(20,16))
 if depthplotflag:
     axdepth = fig.add_axes([0,0.05,1,0.125])
-    ax = fig.add_axes([0,0.15,1,0.85],sharex=axdepth)
+    ax = fig.add_axes([0.1,0.15,0.8,0.85],sharex=axdepth)
 else:
     ax=fig.add_subplot(111)
 
@@ -104,7 +104,12 @@ if depthplotflag:
     basecount,Chr_Region,depth_arr = bamio.singlebaseCov(bamfile,targetRegion)
     bamfile.close()    
     axdepth.fill_between(Chr_Region,depth_arr,alpha=0.4)
-
+    axdepth.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
+    axdepth.set_ylim(bottom=0)
+    axdepth.spines['top'].set_visible(False)
+    axdepth.spines['right'].set_visible(False)
+    axdepth.set_yscale('log')
+    axdepth.set_ylabel('depth(log10)')
 #ax.yaxis.labelpad =1000
 ax.set_yticks(range(len(txID)))
 ax.set_yticklabels(txID)
@@ -121,11 +126,10 @@ ax.spines['left'].set_visible(False)
 ax.set_facecolor("snow")
 #ax.set_axis_bgcolor("snow")
 ax.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
-axdepth.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
 ax.set_ylim(bottom=-1,top=i+1)
 
 plt.title(geneOI)
-#plt.tight_layout()
+plt.tight_layout()
 
 plt.savefig("%s.png"%geneOI,format='png',dpi=500)
 plt.savefig('%s.svg'%geneOI,format='svg',dpi=500)
