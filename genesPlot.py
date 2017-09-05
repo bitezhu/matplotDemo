@@ -79,8 +79,8 @@ plt.rcParams[u'ytick.major.pad']=10
 #plt.tick_params('y',pad=20)   # don't work
 fig=plt.figure(figsize=(20,16))
 if depthplotflag:
-    axdepth = fig.add_axes([0,0.05,1,0.125])
-    ax = fig.add_axes([0.1,0.15,0.8,0.85],sharex=axdepth)
+    axdepth = fig.add_axes([0.1,0.05,0.8,0.1])
+    ax = fig.add_axes([0.1,0.15,0.8,0.82],sharex=axdepth)
 else:
     ax=fig.add_subplot(111)
 
@@ -92,8 +92,8 @@ for i,transcript in enumerate(geneid.children.keys()):
     geneid.children[transcript].inferCodons()
     geneid.addisoform(geneid.children[transcript])
     axaddexons(ax,geneid.children[transcript].exons,i,strand=geneid.children[transcript].strand)
-    axaddexons(ax,geneid.children[transcript].fp_utr,i,strand=geneid.children[transcript],color='darkviolet')
-    axaddexons(ax,geneid.children[transcript].tp_utr,i,strand=geneid.children[transcript],color='red')
+    axaddexons(ax,geneid.children[transcript].fp_utr,i,strand=geneid.children[transcript].strand,color='darkviolet')
+    axaddexons(ax,geneid.children[transcript].tp_utr,i,strand=geneid.children[transcript].strand,color='red')
     ax.hlines(i ,geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length, linestyle=u'dotted', color='black', linewidth=1)
 
 
@@ -106,10 +106,17 @@ if depthplotflag:
     axdepth.fill_between(Chr_Region,depth_arr,alpha=0.4)
     axdepth.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
     axdepth.set_ylim(bottom=0)
+    ymin,ymax = axdepth.get_ylim()
+    yticks = np.linspace(ymin,ymax,4,endpoint=False,dtype=np.int16)
+    axdepth.set_yticks(yticks)
+    axdepth.set_yticklabels(yticks)
     axdepth.spines['top'].set_visible(False)
     axdepth.spines['right'].set_visible(False)
-    axdepth.set_yscale('log')
-    axdepth.set_ylabel('depth(log10)')
+    axdepth.spines['bottom'].set_visible(False)
+    axdepth.set_ylabel("Counts")
+    axdepth.yaxis.set_ticks_position('left')
+    axdepth.xaxis.set_ticks_position('bottom')
+    
 #ax.yaxis.labelpad =1000
 ax.set_yticks(range(len(txID)))
 ax.set_yticklabels(txID)
@@ -129,7 +136,8 @@ ax.set_xlim(geneid.start-0.1*geneid.length,geneid.end+0.1*geneid.length)
 ax.set_ylim(bottom=-1,top=i+1)
 
 plt.title(geneOI)
-plt.tight_layout()
+if not depthplotflag:
+    plt.tight_layout()
 
 plt.savefig("%s.png"%geneOI,format='png',dpi=500)
 plt.savefig('%s.svg'%geneOI,format='svg',dpi=500)
